@@ -3,20 +3,21 @@ package networks
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
+	"strings"
+	"utils"
 )
 
 // Networks represent slice of exists Network
 type Networks struct {
-	networks       []Network
-	oldName        string
-	newName        string
-	networkDirPath string
+	networks []Network
+	config   utils.GenericConfig
 }
 
 // Init networks
 func (nets *Networks) Init() {
+	fmt.Println("In Init")
+	fmt.Println(nets.config.GetDomainXMLPath())
 	nets.loadNetworks()
 }
 
@@ -35,27 +36,38 @@ func (nets *Networks) add(net Network) {
 }
 
 func (nets *Networks) loadNetworks() {
-	var files, err = ioutil.ReadDir(nets.networkDirPath)
+	fmt.Println("loadNetworks")
+	networkXMLPath, err := filepath.Abs(nets.config.GetNetworkXMLPath())
 	if err != nil {
-		os.Exit(1)
+		fmt.Println("Can't get network xml dir")
 	}
-	fmt.Println("Nets before loading:")
+	var files, _ = ioutil.ReadDir(networkXMLPath)
+	fmt.Println("All XMLs from " + networkXMLPath)
 	fmt.Println(nets.networks)
 	for i := 0; i < len(files); i++ {
-		var xmlFilePath = filepath.Join(nets.networkDirPath, files[i].Name())
+		var xmlFilePath = filepath.Join(
+			nets.config.GetNetworkXMLPath(), files[i].Name())
+
 		fmt.Println(xmlFilePath)
-		nets.add(GetNetwork(xmlFilePath, nets.oldName, nets.newName))
+		if strings.HasPrefix(files[i].Name()+"_", nets.config.GetOldName()) {
+			nets.add(GetNetwork(
+				xmlFilePath,
+				nets.config.GetOldName(),
+				nets.config.GetNewName()))
+		}
 	}
 	fmt.Println("Nets after loading:")
 	fmt.Println(nets.networks)
 }
 
 // GetNetworks build Networks instance
-func GetNetworks(oldName string, newName string) Networks {
-	nets := Networks{
-		networkDirPath: "/etc/libvirt/qemu/networks/",
-		oldName:        oldName,
-		newName:        newName}
+func GetNetworks(config utils.GenericConfig) Networks {
+	fmt.Println("Get networks")
+	fmt.Println(config)
+	fmt.Println(config.GetDomainXMLPath())
+	nets := Networks{config: config}
+	fmt.Println("init nets")
 	nets.Init()
+	fmt.Println("return nets")
 	return nets
 }

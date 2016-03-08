@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Domains represent slice of exists Network
@@ -44,16 +45,18 @@ func (doms *Domains) loadDomains() {
 	for i := 0; i < len(files); i++ {
 		var xmlFilePath = filepath.Join(doms.domainDirPath, files[i].Name())
 		fmt.Println(xmlFilePath)
-		doms.add(GetDomain(xmlFilePath, doms.oldName, doms.newName))
+		if strings.HasPrefix(files[i].Name()+"_", doms.oldName) {
+			doms.add(GetDomain(xmlFilePath, doms.oldName, doms.newName))
+		}
 	}
 	fmt.Println("Doms after loading:")
 	fmt.Println(doms.domains)
 }
 
 // GetDomains build Networks instance
-func GetDomains(oldName string, newName string) Domains {
+func GetDomains(oldName string, newName string, xmlPath string) Domains {
 	doms := Domains{
-		domainDirPath: "/etc/libvirt/qemu/", oldName: oldName, newName: newName}
+		domainDirPath: xmlPath, oldName: oldName, newName: newName}
 	doms.Init()
 	return doms
 }

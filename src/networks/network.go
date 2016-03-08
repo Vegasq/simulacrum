@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"utils"
 )
@@ -25,7 +27,9 @@ type Network struct {
 
 // Bridge defines bridge interface for network
 type Bridge struct {
-	Name string `xml:"name,attr"`
+	Name  string `xml:"name,attr"`
+	Stp   string `xml:"stp,attr"`
+	Delay string `xml:"delay,attr"`
 }
 
 // Mac defines MAC address
@@ -36,6 +40,7 @@ type Mac struct {
 // IP defines CIDR
 type IP struct {
 	Address string `xml:"address,attr"`
+	Prefix  string `xml:"prefix,attr"`
 }
 
 // XMLNetwork defines xml structure
@@ -112,5 +117,19 @@ func (net *Network) Clone() {
 
 	fmt.Println("Network clonned:")
 	fmt.Println(net)
+	fmt.Println(newXMLPath)
 
+	createOut, err := exec.Command("sh", "-c", "virsh net-create "+newXMLPath).Output()
+	if err != nil {
+		fmt.Println("Can't create network " + newXMLPath)
+	}
+	fmt.Printf("%s", createOut)
+
+	re := regexp.MustCompile("/(?P<name>[a-zA-Z_]*).xml")
+	domainName := re.FindStringSubmatch(newXMLPath)[1]
+	startOut, err := exec.Command("sh", "-c", "virsh net-start "+domainName).Output()
+	if err != nil {
+		fmt.Println("Can't start network " + newXMLPath)
+	}
+	fmt.Printf("%s", startOut)
 }

@@ -14,17 +14,17 @@ type Vars struct {
 
 // DefineCommandline parse commandline
 func DefineCommandline() Vars {
-	var projectName = flag.String("project_name", "",
-		"help message for project_name")
-	var newProjectName = flag.String("new_project_name", "",
-		"help message for new_project_name")
+	var projectName = flag.String("old", "",
+		"Old project name")
+	var newProjectName = flag.String("new", "",
+		"New project name")
 	flag.Parse()
 	if *projectName == "" {
-		fmt.Println("project_name can't be empty")
+		fmt.Println("Specify original project name in -old")
 		os.Exit(1)
 	}
 	if *newProjectName == "" {
-		fmt.Println("new_project_name can't be empty")
+		fmt.Println("Specify new project name in -new")
 		os.Exit(1)
 	}
 	return Vars{OldName: *projectName, NewName: *newProjectName}
